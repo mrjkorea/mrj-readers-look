@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MRJ readers — teacher look</title>
+<style>
+body{margin:0;background:#111;color:#f4f1ea;font-family:Georgia,serif}
+header{position:sticky;top:0;background:#1b1b1b;padding:10px;display:flex;gap:8px;align-items:center;z-index:2}
+select,button{font-size:18px;padding:8px 10px}
+button{background:#f4f1ea;border:0;border-radius:8px}
+#tag{font-size:14px;opacity:.8}
+main{max-width:520px;margin:0 auto;padding:8px 8px 80px}
+img{width:100%;height:auto;border-radius:12px;background:#222;display:block}
+#print{font-size:28px;line-height:1.35;white-space:pre-wrap;margin:12px 4px 0}
+#meta{font-size:14px;opacity:.7;margin:8px 4px}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;gap:8px;padding:10px;background:#1b1b1b}
+.nav button{flex:1;font-size:22px}
+</style>
+</head>
+<body>
+<header>
+  <select id="book"></select>
+  <span id="tag">teacher look · no sound · READERLOOK20260925v1</span>
+</header>
+<main>
+  <img id="pic" alt="">
+  <div id="print"></div>
+  <div id="meta"></div>
+</main>
+<div class="nav">
+  <button id="prev" type="button">Back</button>
+  <button id="next" type="button">Next</button>
+</div>
+<script>
+const READERLOOK20260925v1 = "READERLOOK20260925v1";
+let books = [], bi = 0, pi = 0;
+const book = document.getElementById("book");
+const pic = document.getElementById("pic");
+const print = document.getElementById("print");
+const meta = document.getElementById("meta");
+function show(){
+  const b = books[bi];
+  const p = b.pages[pi];
+  pic.src = p.img + "?v=READERLOOK20260925v1";
+  print.textContent = p.text || "(no words yet)";
+  meta.textContent = (b.title || b.id) + " · " + (pi+1) + " / " + b.pages.length + " · " + b.tag;
+  book.value = String(bi);
+}
+function step(n){
+  const b = books[bi];
+  pi += n;
+  if (pi >= b.pages.length){ bi = (bi+1) % books.length; pi = 0; }
+  if (pi < 0){ bi = (bi-1+books.length) % books.length; pi = books[bi].pages.length-1; }
+  show();
+}
+book.onchange = () => { bi = Number(book.value); pi = 0; show(); };
+document.getElementById("prev").onclick = () => step(-1);
+document.getElementById("next").onclick = () => step(1);
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") step(1);
+  if (e.key === "ArrowLeft") step(-1);
+});
+fetch("books.json?v=READERLOOK20260925v1").then(r => r.json()).then(data => {
+  books = data;
+  book.innerHTML = books.map((b,i) => `<option value="${i}">${b.title}</option>`).join("");
+  show();
+});
+</script>
+</body>
+</html>
