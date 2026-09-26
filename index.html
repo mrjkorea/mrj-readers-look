@@ -20,7 +20,7 @@ img{width:100%;height:auto;border-radius:12px;background:#222;display:block}
 <body>
 <header>
   <select id="book"></select>
-  <div id="tag">A to H, top to bottom · no sound · READERLOOK20260925v2</div>
+  <div id="tag">Next stays in level order · A then B then C · READERLOOK20260926v3</div>
 </header>
 <main>
   <img id="pic" alt="">
@@ -32,13 +32,19 @@ img{width:100%;height:auto;border-radius:12px;background:#222;display:block}
   <button id="next" type="button">Next</button>
 </div>
 <script>
-const V = "READERLOOK20260925v2";
+const V = "READERLOOK20260926v3";
 let books = [], bi = 0, pi = 0;
 const book = document.getElementById("book");
 const pic = document.getElementById("pic");
 const print = document.getElementById("print");
 const meta = document.getElementById("meta");
 function levelOf(b){ return (b.id.split("_")[1] || "?").toUpperCase(); }
+function numOf(b){ const n = parseInt((b.id.split("_")[2] || "0"), 10); return isNaN(n) ? 0 : n; }
+function byLevel(a, b){
+  const la = levelOf(a), lb = levelOf(b);
+  if (la !== lb) return la < lb ? -1 : 1;
+  return numOf(a) - numOf(b);
+}
 function show(){
   const b = books[bi];
   const p = b.pages[pi];
@@ -62,14 +68,14 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") step(-1);
 });
 fetch("books.json?v=" + V).then(r => r.json()).then(data => {
-  books = data;
+  books = data.slice().sort(byLevel);
   const groups = {};
   books.forEach((b,i) => {
     const level = levelOf(b);
     (groups[level] ||= []).push({i, b, level});
   });
   book.innerHTML = Object.keys(groups).sort().map(level => {
-    const opts = groups[level].map(x => `<option value="${x.i}">${x.level} · ${x.b.title}</option>`).join("");
+    const opts = groups[level].map(x => `<option value="${x.i}">${x.level}${String(numOf(x.b)).padStart(3,"0")} · ${x.b.title}</option>`).join("");
     return `<optgroup label="Level ${level}">${opts}</optgroup>`;
   }).join("");
   show();
